@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Transaction Batch API
+  version: 1.0.0
+  description: Submit CSV transfer batches and retrieve their processing results.
+servers:
+  - url: /api
+security:
+  - CompanyApiKey: []
+paths:
+  /transaction-batches:
+    post:
+      summary: Submit a transfer batch
+      description: A matching retry (same company, key, CSV contents, and callback URL) returns the original submission. Reusing a key with changed content or callback returns 409.
+      operationId: createTransactionBatch
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [idempotency_key, csv]
+              properties:
+                idempotency_key:
+                  type: string
+                  minLength: 16
+                  maxLength: 128
+                  pattern: '^[A-Za-z0-9_-]+$'
+                csv:
+                  type: string
+                  format: binary
+                  description: CSV of source account ID, destination account ID, and amount; max 10 MiB and 1,000 rows.
+                callback_url:
+                  type: string
+                  format: uri
+                  pattern: '^https://'
+                  maxLength: 2048
+                  nullable: true
+      responses:
+        '202':
+          description: Batch accepted or matching idempotent retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchAccepted'
+        '401':
+          description: Missing or invalid company API key.
+        '409':
+          description: Idempotency key already used for a different submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '422':
+          description: Invalid request fields or invalid CSV row data.
+  /transaction-batches/{idempotencyKey}:
+    get:
+      summary: Get batch status and results
+      operationId: getTransactionBatch
+      parameters:
+        - name: idempotencyKey
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 128
+      responses:
+        '200':
+          description: Current batch status; completed or failed batches include row outcomes and totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatus'
+        '401':
+          description: Missing or invalid company API key.
+        '404':
+          description: No batch with this key for the authenticated company.
+components:
+  securitySchemes:
+    CompanyApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+    BatchAccepted:
+      type: object
+      required: [idempotency_key, status]
+      properties:
+        idempotency_key:
+          type: string
+        status:
+          type: string
+          enum: [submitted, processing, completed, failed]
+    BatchStatus:
+      type: object
+      required: [idempotency_key, status, callback_http_status]
+      properties:
+        idempotency_key:
+          type: string
+        status:
+          type: string
+          enum: [submitted, processing, completed, failed]
+        failure_reason:
+          type: string
+          description: Present for request-level processing failure.
+        callback_http_status:
+          type: integer
+          nullable: true
+          description: Last callback HTTP response code, or null if no response was received.
+        totals:
+          type: object
+          description: Present for completed or failed batches.
+          properties:
+            rows:
+              type: integer
+            completed:
+              type: integer
+            rejected:
+              type: integer
+            amount_transferred:
+              type: string
+              example: '125.00'
+        outcomes:
+          type: array
+          description: Present for completed or failed batches; one entry per processed CSV row.
+          items:
+            type: object
+            properties:
+              row_number:
+                type: integer
+              source_account_id:
+                type: string
+                pattern: '^[0-9]{16}$'
+              destination_account_id:
+                type: string
+                pattern: '^[0-9]{16}$'
+              amount:
+                type: string
+                pattern: '^[0-9]+\.[0-9]{2}$'
+              status:
+                type: string
+                enum: [completed, rejected]
+              reason:
+                type: string
+                nullable: true
+                enum: [same_account, amount_exceeds_limit, account_not_found, insufficient_funds]
