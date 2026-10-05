@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use RuntimeException;
 
@@ -16,6 +17,12 @@ class Company extends Model
 {
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, SoftDeletes;
+
+    /** @return HasMany<TransactionBatch, $this> */
+    public function transactionBatches(): HasMany
+    {
+        return $this->hasMany(TransactionBatch::class);
+    }
 
     public static function digestApiKey(string $apiKey): string
     {

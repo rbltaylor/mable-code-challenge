@@ -11,13 +11,6 @@ class CompanyCommandsTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        config()->set('app.key', 'company-command-test-key');
-    }
-
     public function test_create_prompts_for_and_stores_only_a_digest_of_the_api_key(): void
     {
         $this->artisan('company:create', ['name' => 'Alpha Sales'])

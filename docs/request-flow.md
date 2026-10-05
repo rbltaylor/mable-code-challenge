@@ -1,15 +1,19 @@
 # Request flow
 
-- Each company has its own API key. Require it in the header for submission and that company's status lookup.
+- Each company has its own API key. Require it in the `X-API-Key` header for submission and that company's status lookup.
 - Create and manage companies through a simple CLI; operator supplies API key through hidden prompt for creation or rotation.
 - Submit daily transfers through an API request with CSV and required idempotency key.
-- Validate every CSV row's field count, account ID format, and amount format before queueing; reject whole submission if any row is invalid.
+- Submit with a multipart CSV file and idempotency key in the body; callback URL is optional.
+- Reject CSV files with more than 1,000 rows during processing.
+- Limit each uploaded CSV file to 10 MiB.
+- Validate every CSV row's field count, account ID format, and amount format during processing; fail the request if any row is invalid.
 - Check account existence and available funds during processing; report failures per transfer.
-- Retry with the same idempotency key returns the original request UUID.
+- Identify each request by its submitting company and client-supplied idempotency key.
+- Retry with the same idempotency key and unchanged submission returns the original request; changed submission is a conflict.
 - Queue a job for the request; job processes all its transactions.
-- Return request-received response with request UUID after queueing.
+- Return a request-received response with the idempotency key after queueing.
 - Process each company's queued requests in arrival order, one at a time.
-- GET request status by UUID: submitted, processing, completed, or failed.
+- GET request status by idempotency key: submitted, processing, completed, or failed.
 - Rejected transfers remain row outcomes; request still completes.
 - Failed status reserved for request-level processing failure.
 - Completed result: outcome per CSV row, reason for each rejection, aggregate totals.

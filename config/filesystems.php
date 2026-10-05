@@ -15,7 +15,7 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
-    'transfer_requests_disk' => env('TRANSFER_REQUESTS_DISK', 's3'),
+    'transaction_batches_disk' => env('TRANSACTION_BATCHES_DISK', 's3'),
 
     /*
     |--------------------------------------------------------------------------
