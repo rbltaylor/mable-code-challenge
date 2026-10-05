@@ -1,7 +1,7 @@
 # Request flow
 
 - Each company has its own API key. Require it in the header for submission and that company's status lookup.
-- Create and manage companies through a simple CLI; prompt to provide or update their API key.
+- Create and manage companies through a simple CLI; operator supplies API key through hidden prompt for creation or rotation.
 - Submit daily transfers through an API request with CSV and required idempotency key.
 - Validate every CSV row's field count, account ID format, and amount format before queueing; reject whole submission if any row is invalid.
 - Check account existence and available funds during processing; report failures per transfer.

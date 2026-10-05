@@ -1,6 +1,7 @@
 # Business rules
 
 - Banking service for transfers between customer accounts.
+- Company: display name and generated unique code; soft-delete through CLI.
 - Parse each company's balance CSV during setup to seed starting balances, before daily transfers.
 - Keep accounts, balances, and transfers scoped to their company.
 - Account IDs: 16 digits. Preserve leading zeros.
