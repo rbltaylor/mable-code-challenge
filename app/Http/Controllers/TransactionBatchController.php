@@ -6,7 +6,9 @@ use App\Http\Requests\StoreTransactionBatch;
 use App\Jobs\ProcessTransactionBatch;
 use App\Models\Company;
 use App\Models\TransactionBatch;
+use App\Services\TransactionBatchService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Throwable;
@@ -90,5 +92,14 @@ class TransactionBatchController extends Controller
             'idempotency_key' => $submission->idempotency_key,
             'status' => $submission->status,
         ], 202);
+    }
+
+    public function show(Request $request, string $idempotencyKey, TransactionBatchService $service): JsonResponse
+    {
+        /** @var Company $company */
+        $company = $request->attributes->get('company');
+        $submission = $company->transactionBatches()->where('idempotency_key', $idempotencyKey)->firstOrFail();
+
+        return response()->json($service->response($submission)->data);
     }
 }

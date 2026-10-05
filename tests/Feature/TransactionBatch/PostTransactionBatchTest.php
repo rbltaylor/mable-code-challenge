@@ -61,6 +61,7 @@ class PostTransactionBatchTest extends TestCase
         $this->assertSame(hash('sha256', self::CSV), $submission->csv_sha256);
         $this->assertSame(self::CSV, Storage::disk('local')->get($submission->csv_path));
         $this->assertSame('https://example.com/callback', $submission->callback_url);
+        $this->assertNull($submission->callback_http_status);
         Queue::assertPushed(ProcessTransactionBatch::class, 1);
     }
 

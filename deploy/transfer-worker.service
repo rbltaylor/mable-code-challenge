@@ -1,0 +1,19 @@
+[Unit]
+Description=Mable transfer queue worker
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/path/to/folder/
+# Run exactly one transfer worker: accounts are shared and CSV requests must process in order.
+# More workers require cross-worker ordering and account concurrency controls before increasing capacity.
+# Laravel's worker timeout defaults to 60 seconds; the database queue's retry_after defaults to 90.
+# Keep retry_after longer than the worker timeout if either setting changes.
+ExecStart=/usr/bin/php /path/to/folder/artisan queue:work database --sleep=3
+Restart=always
+RestartSec=5
+StandardOutput=append:/path/to/folder/storage/logs/transfer-worker.log
+StandardError=append:/path/to/folder/storage/logs/transfer-worker-error.log
+
+[Install]
+WantedBy=multi-user.target

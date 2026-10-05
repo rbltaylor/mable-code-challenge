@@ -16,3 +16,5 @@
 - Each transfer debits source and credits destination.
 - Reject and report a transfer if debit would leave source balance below $0; continue with remaining transfers.
 - Reject and report a transfer referencing an account without a seeded balance; continue with remaining transfers.
+- Reject and report a transfer whose source and destination are the same; continue with remaining transfers.
+- Reject and report a transfer above the configured maximum amount; default $50,000.00; continue with remaining transfers.

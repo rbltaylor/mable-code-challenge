@@ -16,5 +16,8 @@
 - GET request status by idempotency key: submitted, processing, completed, or failed.
 - Rejected transfers remain row outcomes; request still completes.
 - Failed status reserved for request-level processing failure.
+- Failed status includes any row outcomes committed before an unexpected processing failure.
 - Completed result: outcome per CSV row, reason for each rejection, aggregate totals.
-- Submission may include a callback. On completion, job calls requester with same result as status response.
+- Submission may include a callback. The transfer job sends the completed result to the callback URL.
+- Retry a non-2xx callback response once after two seconds.
+- A failed callback does not change a completed request; status lookup shows the last callback HTTP response code, or null when no response was received.
